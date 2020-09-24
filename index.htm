@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>jQuery</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<style>
+			#slider {
+				width: 800px;
+				height: 600px;
+				background: #EFEFEF center/cover;
+				margin: 20px auto;
+				border: 1px solid black;
+				position: relative;
+				display: flex;
+				padding: 5px;
+				justify-content: center;
+			}
+			button {
+				position: absolute;
+				align-self: center;
+				padding: 5px 10px;
+			}
+			#prev {
+				left: 0;
+			}
+			h1 {
+				color: #fff;
+				text-align: center;
+			}
+			p {
+				padding: 30px 200px;
+				backdrop-filter: blur(10px);
+				color: #fff;
+			}
+			#next {
+				right: 0;
+			}
+			#text {
+				align-self: flex-end;
+			}
+			body {
+				display: flex;
+				justify-content: center;
+				flex-direction: column;
+			}
+			#inputs {
+				margin-left: auto;
+				margin-right: auto;
+			}
+			#inputs input {
+				width: 20px;
+				height: 20px;
+				background: red;
+				margin-left: 20px;
+			}
+			@media only screen and (max-width: 768px) {
+				#slider {
+					max-width: 400px;
+				}
+				p {
+					padding: 20px 40px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div id="slider" onclick="loadDoc('slider.json', show)">
+			<div id="text">
+				<h1 id="slider_h1"></h1>
+				<p id="slider_paragraph"></p>
+			</div>
+		</div>
+		<div id="inputs"></div>
+		<script>
+				let x = 0;
+				const slider = document.getElementById('slider');
+				let sliderParagraph = document.getElementById('slider_paragraph');
+				let prev = document.getElementById('prev');
+				let next = document.getElementById('next');
+				let sliderHeader = document.getElementById('slider_h1');
+				let touchBegin = 0;
+				let touchFinish = 0;
+				let start = true;
+				let begin = true;
+				let elementOnLoad = true;
+				let inputsQuantity = 0;
+				let inputs = document.getElementById('inputs');
+				let iteration = true;
+
+				function show(xhttp){
+					let answers = JSON.parse(xhttp.responseText);
+					function changeX(i) {
+						console.log("true");
+						x = i;
+						show(xhttp);
+					}
+					inputsQuantity = answers.slider.length;
+					console.log(inputsQuantity);
+					if(x >= answers.slider.length && elementOnLoad == false) { x = 0; }
+					if (x >= answers.slider.length && elementOnLoad == true) { x = 0; elementOnLoad = false; }
+					else if(x < 0) { x = answers.slider.length-1; }
+					slider.style.backgroundImage = "url('" + answers.slider[x].image + "')";
+					sliderHeader.innerHTML = answers.slider[x].text.h1;
+					sliderParagraph.innerHTML = answers.slider[x].text.p;
+					slider.addEventListener("touchstart", f);
+					slider.addEventListener("touchend", v);
+					function f(ev) {
+						touchBegin = ev.touches[0].clientX;
+					}
+					function v(ev) {
+						touchFinish = ev.changedTouches[0].clientX;
+						if(touchBegin+50 < touchFinish && start == true) {
+							x--;
+							start = false;
+							show(xhttp);
+							setTimeout(function(){ start = true; }, 500);
+
+						} else if (touchBegin-50 > touchFinish && begin == true) {
+							x++;
+							begin = false;
+							show(xhttp);
+							setTimeout(function(){ begin = true; }, 500);
+						}
+					}
+					if(iteration) {
+						for (let i = 0; i < inputsQuantity; i++) {
+							let inp = document.createElement('input');
+							inp.type = "radio";
+							inp.name = "radio";
+							inp.addEventListener("click", function(){changeX(i)});
+							inputs.append(inp);
+						}
+						iteration = false;
+					}
+
+				}
+
+				function loadDoc(url, cFunction) {
+					let xhttp = new XMLHttpRequest();
+					xhttp.open("GET", url, true);
+					xhttp.send();
+
+					xhttp.onreadystatechange = function() {
+						if (this.readyState == 4 && this.status == 200) {
+							cFunction(this);
+						}
+					};
+				}
+		</script>
+	</body>
+</html>
